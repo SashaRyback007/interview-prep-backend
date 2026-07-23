@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from app.models import DifficultyEnum
-
+from app.models import StatusEnum
 
 # ==================== CATEGORY SCHEMAS ====================
 
@@ -68,3 +68,31 @@ class UserResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+# ==================== PROGRESS SCHEMAS ====================
+
+# Схема для створення/оновлення статусу вивчення
+class ProgressCreate(BaseModel):
+    question_id: int
+    status: str  # Наприклад: "learned", "review", "in_progress"
+
+# Схема для повернення запису про прогрес
+class ProgressResponse(BaseModel):
+    id: int
+    user_id: int
+    question_id: int
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ProgressCreate(BaseModel):
+    question_id: int
+    status: StatusEnum
+
+class ProgressResponse(BaseModel):
+    id: int
+    user_id: int
+    question_id: int
+    status: StatusEnum
+
+    model_config = ConfigDict(from_attributes=True)

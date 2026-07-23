@@ -109,3 +109,47 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     # Генеруємо токен
     access_token = auth.create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
+
+# ==================== PROGRESS ENDPOINTS ====================
+
+@app.post("/progress", response_model=schemas.ProgressResponse)
+def set_question_progress(
+    progress_data: schemas.ProgressCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    # Перевіряємо, чи існує таке питання
+    question = db.query(models.Question).filter(models.Question.id == progress_data.question_id).first()
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    # Перевіряємо, чи вже є запис про прогрес для цього користувача і питання
+    progress_entry = db.query(models.UserProgress).filter(
+        models.UserProgress.user_id == current_user.id,
+        models.UserProgress.question_id == progress_data.question_id
+    ).first()
+
+    if progress_entry:
+        # Оновлюємо існуючий статус
+        progress_entry.status = progress_data.status
+    else:
+        # Створюємо новий запис
+        progress_entry = models.UserProgress(
+            user_id=current_user.id,
+            question_id=progress_data.question_id,
+            status=progress_data.status
+        )
+        db.add(progress_entry)
+
+    db.commit()
+    db.refresh(progress_entry)
+    return progress_entry
+
+
+@app.get("/progress", response_model=list[schemas.ProgressResponse])
+def get_user_progress(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    # Повертаємо всі записи прогресу поточного користувача
+    return db.query(models.UserProgress).filter(models.UserProgress.user_id == current_user.id).all()
