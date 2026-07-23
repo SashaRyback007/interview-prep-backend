@@ -47,3 +47,24 @@ class CategoryWithQuestionsResponse(CategoryResponse):
     questions: List[QuestionResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+# ==================== USER & AUTH SCHEMAS ====================
+
+# Схема для реєстрації користувача
+class UserCreate(BaseModel):
+    email: str
+    username: str
+    password: str
+
+# Схема для повернення даних користувача
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    username: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+# Схема для повернення JWT-токена
+class Token(BaseModel):
+    access_token: str
+    token_type: str
