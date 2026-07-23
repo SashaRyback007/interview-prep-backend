@@ -1,0 +1,4 @@
+*.db  
+interview_prep.db  
+venv/  
+__pycache__/ 
