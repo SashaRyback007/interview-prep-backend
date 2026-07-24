@@ -96,3 +96,10 @@ class ProgressResponse(BaseModel):
     status: StatusEnum
 
     model_config = ConfigDict(from_attributes=True)
+
+class UserStatsResponse(BaseModel):
+    total_questions: int
+    new_count: int
+    learning_count: int
+    mastered_count: int
+    progress_percentage: float

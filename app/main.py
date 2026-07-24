@@ -5,7 +5,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app import models, schemas, auth
 from app.database import Base, engine, get_db
 from app import models, schemas
-
+from app.auth import get_current_user
+import random
 # Автоматично створюємо таблиці в БД
 Base.metadata.create_all(bind=engine)
 
@@ -153,3 +154,66 @@ def get_user_progress(
 ):
     # Повертаємо всі записи прогресу поточного користувача
     return db.query(models.UserProgress).filter(models.UserProgress.user_id == current_user.id).all()
+
+@app.get("/stats", response_model=schemas.UserStatsResponse)
+def get_user_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # 1. Загальна кількість питань у системі
+    total_questions = db.query(models.Question).count()
+    
+    if total_questions == 0:
+        return schemas.UserStatsResponse(
+            total_questions=0,
+            new_count=0,
+            learning_count=0,
+            mastered_count=0,
+            progress_percentage=0.0
+        )
+
+    # 2. Отримуємо весь прогрес поточного користувача
+    user_progress = db.query(models.UserProgress).filter(
+        models.UserProgress.user_id == current_user.id
+    ).all()
+
+    # Підраховуємо статус кожного питання
+    learning_count = sum(1 for p in user_progress if p.status == models.StatusEnum.LEARNING)
+    mastered_count = sum(1 for p in user_progress if p.status == models.StatusEnum.MASTERED)
+    
+    # Решта питань, для яких ще немає запису або статус NEW — це new_count
+    new_count = total_questions - (learning_count + mastered_count)
+
+    # Обчислюємо відсоток за засвоєними (Mastered) питаннями
+    progress_percentage = round((mastered_count / total_questions) * 100, 2)
+
+    return schemas.UserStatsResponse(
+        total_questions=total_questions,
+        new_count=new_count,
+        learning_count=learning_count,
+        mastered_count=mastered_count,
+        progress_percentage=progress_percentage
+    )
+
+@app.get("/questions/random", response_model=schemas.QuestionResponse)
+def get_random_question(
+    category_id: int | None = None,
+    difficulty: models.DifficultyEnum | None = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.Question)
+    
+    if category_id:
+        query = query.filter(models.Question.category_id == category_id)
+    if difficulty:
+        query = query.filter(models.Question.difficulty == difficulty)
+        
+    questions = query.all()
+    
+    if not questions:
+        raise HTTPException(
+            status_code=404, 
+            detail="No questions found with specified parameters"
+        )
+        
+    return random.choice(questions)
