@@ -7,15 +7,17 @@ from app.database import Base, engine, get_db
 from app import models, schemas
 from app.auth import get_current_user
 import random
+from fastapi.staticfiles import StaticFiles
+
 # Автоматично створюємо таблиці в БД
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Interview Prep API")
 
 
-@app.get("/")
-def read_root():
-    return {"message": "API працює успішно!"}
+# @app.get("/")
+# def read_root():
+#     return {"message": "API працює успішно!"}
 
 
 # ==================== CATEGORIES ENDPOINTS ====================
@@ -217,3 +219,5 @@ def get_random_question(
         )
         
     return random.choice(questions)
+
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
