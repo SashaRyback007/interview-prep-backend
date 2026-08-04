@@ -26,6 +26,7 @@
 
     <!-- Header -->
     <header class="border-b border-slate-800/80 bg-[#0d1117]/50 backdrop-blur-md px-8 py-4">
+        
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 p-2 rounded-xl">
@@ -34,6 +35,11 @@
                 <h1 class="text-lg font-bold tracking-wide text-white">Interview Prep</h1>
             </div>
             
+            <div class="flex items-center gap-3">
+                <!-- 🌓 Theme Toggle Button -->
+                <button type="button" onclick="toggleTheme()" class="p-2 rounded-xl bg-[#121824] dark:bg-[#121824] border border-slate-700/60 text-slate-300 hover:text-white transition cursor-pointer" title="Toggle Theme">
+                    <span id="themeIcon">☀️</span>
+                </button>
             <!-- Header User Info Area -->
             <div id="userInfo" class="hidden flex items-center gap-3">
                 <!-- Аватарка (Зум при кліку) -->
@@ -89,14 +95,12 @@
                     Your browser does not support the video tag.
                 </video>
                 <div class="absolute inset-0 bg-slate-950/65 backdrop-blur-[2px]"></div>
-                <div class="relative z-10 max-w-xl space-y-3">
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight drop-shadow-md">
-                        Welcome to IT Interview Prep Hub
-                    </h2>
-                    <p class="text-sm md:text-base text-slate-200 font-medium leading-relaxed drop-shadow">
-                        Master your technical interviews with confidence, practice flashcards, and track your progress.
-                    </p>
+                <div id="heroBanner" class="relative overflow-hidden bg-cover bg-center rounded-2xl p-8 md:p-12 text-center border border-slate-800/80 shadow-2xl transition-all duration-300">
+                <div class="relative z-10 space-y-2">
+                    <h1 class="text-2xl md:text-4xl font-extrabold text-white tracking-tight">Welcome to IT Interview Prep Hub</h1>
+                    <p class="text-slate-300 text-sm md:text-base max-w-xl mx-auto">Master your technical interviews with confidence, practice flashcards, and track your progress.</p>
                 </div>
+            </div>
             </div>
 
             <!-- Stats Widgets Grid -->
@@ -171,7 +175,7 @@
                     <span>⭐</span> Only Bookmarks
                 </button>
             </div>
-            
+
             <!-- Add Question Button -->
             <div class="flex justify-end">
                 <button onclick="toggleCreateModal()" class="py-2.5 px-5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-semibold text-xs transition flex items-center gap-2 cursor-pointer">
@@ -269,65 +273,72 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
-                    <button onclick="loadPreviousQuestion()" class="w-full sm:w-auto py-3 px-5 rounded-xl border border-indigo-500/30 bg-indigo-950/40 hover:bg-indigo-900/50 text-indigo-300 font-semibold text-sm transition flex items-center justify-center gap-2">
-                        ← Back
-                    </button>
+                <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-3 items-center justify-between pt-2">
+                <!-- Back Button -->
+                <button type="button" onclick="loadPreviousQuestion()" class="w-full sm:w-auto py-3 px-5 rounded-xl border border-indigo-500/30 bg-indigo-900/80 hover:bg-indigo-900 text-indigo-100 font-semibold text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                    ← Back
+                </button>
 
-                    <button onclick="updateStatus('Learning')" class="w-full sm:w-auto flex-1 py-3 px-6 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-semibold text-sm transition">
+                <div class="flex flex-wrap gap-3 w-full sm:w-auto flex-1 justify-center">
+                    <!-- Still Learning Button -->
+                    <button type="button" onclick="updateStatus('Learning')" class="w-full sm:w-auto flex-1 py-3 px-6 rounded-xl border border-amber-500/60 bg-amber-500/20 hover:bg-amber-500/30 text-amber-900 dark:text-amber-300 font-bold text-sm transition cursor-pointer shadow-sm">
                         Still Learning
                     </button>
 
-                    <button onclick="updateStatus('Mastered')" class="w-full sm:w-auto flex-1 py-3 px-6 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm transition shadow-lg shadow-emerald-500/20">
+                    <!-- Mastered Button -->
+                    <button type="button" onclick="updateStatus('Mastered')" class="w-full sm:w-auto flex-1 py-3 px-6 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm transition shadow-lg shadow-emerald-500/20 cursor-pointer">
                         Mastered
                     </button>
-
-                    <button onclick="loadRandomQuestion()" class="w-full sm:w-auto py-3 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">
-                        Next ➔
-                    </button>
                 </div>
-                
+
+                <!-- Next Button -->
+                <button type="button" onclick="loadRandomQuestion()" class="w-full sm:w-auto py-3 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition shadow-lg shadow-indigo-600/20 cursor-pointer">
+                    Next ➔
+                </button>
+            </div>
             </div>
         </section>
     </main>
 
     <!-- Edit Profile Modal -->
-    <div id="editProfileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-        <div class="bg-[#121824] w-full max-w-md p-6 rounded-2xl border border-slate-800/80 shadow-2xl space-y-5">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                    <span>👤</span> Edit Profile
-                </h3>
-                <button type="button" onclick="toggleEditProfileModal()" class="text-slate-400 hover:text-white text-lg font-bold transition">✕</button>
-            </div>
-            
-            <form onsubmit="handleSaveProfile(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Username</label>
-                    <input type="text" id="editUsername" required class="w-full p-3 bg-[#1a2232] border border-slate-700/60 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500 transition">
-                </div>
-
-                <!-- Завантаження файлу з комп'ютера -->
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Upload Photo from Computer</label>
-                    <input type="file" id="editAvatarFile" accept="image/*" class="w-full p-2 bg-[#1a2232] border border-slate-700/60 rounded-xl text-slate-300 text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white file:text-xs file:font-semibold hover:file:bg-indigo-500 cursor-pointer transition">
-                </div>
-
-                <div class="text-center text-xs text-slate-500 font-semibold uppercase tracking-widest my-1">OR</div>
-                
-                <!-- Завантаження через URL -->
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Avatar Image URL</label>
-                    <input type="url" id="editAvatarUrl" placeholder="https://i.pinimg.com/...jpg" class="w-full p-3 bg-[#1a2232] border border-slate-700/60 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500 transition">
-                </div>
-
-                <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                    <button type="button" onclick="toggleEditProfileModal()" class="py-2.5 px-4 rounded-xl text-slate-400 text-xs hover:text-white transition">Cancel</button>
-                    <button type="submit" class="py-2.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition shadow-lg shadow-indigo-600/20">Save Changes</button>
-                </div>
-            </form>
+<div id="editProfileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-[#121824] text-slate-100 w-full max-w-md p-6 rounded-2xl border border-slate-800/80 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                <span>👤</span> Edit Profile & Banner
+            </h3>
+            <button type="button" onclick="toggleEditProfileModal()" class="text-slate-400 hover:text-white text-lg font-bold transition">✕</button>
         </div>
+        
+        <form onsubmit="handleSaveProfile(event)" class="space-y-4">
+            <!-- Username -->
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Username</label>
+                <input type="text" id="editUsername" required class="w-full p-3 bg-[#1a2232] border border-slate-700/60 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+            </div>
+
+            <!-- Avatar Section -->
+            <div class="border-t border-slate-800/80 pt-3">
+                <label class="block text-xs font-bold uppercase tracking-wider text-indigo-400 mb-2">Avatar Image</label>
+                <input type="file" id="editAvatarFile" accept="image/*" class="w-full p-2 bg-[#1a2232] border border-slate-700/60 rounded-xl text-slate-300 text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white file:text-xs file:font-semibold hover:file:bg-indigo-500 cursor-pointer transition">
+                <input type="url" id="editAvatarUrl" placeholder="Or enter Image URL..." class="w-full p-2.5 mt-2 bg-[#1a2232] border border-slate-700/60 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500 transition">
+            </div>
+
+            <!-- Banner Section -->
+            <div class="border-t border-slate-800/80 pt-3">
+                <label class="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">Hero Banner Background</label>
+                <input type="file" id="editBannerFile" accept="image/*" class="w-full p-2 bg-[#1a2232] border border-slate-700/60 rounded-xl text-slate-300 text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-amber-600 file:text-white file:text-xs file:font-semibold hover:file:bg-amber-500 cursor-pointer transition">
+                <input type="url" id="editBannerUrl" placeholder="Or enter Banner Image URL..." class="w-full p-2.5 mt-2 bg-[#1a2232] border border-slate-700/60 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500 transition">
+            </div>
+
+            <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                <button type="button" onclick="toggleEditProfileModal()" class="py-2.5 px-4 rounded-xl text-slate-400 text-xs hover:text-white transition">Cancel</button>
+                <button type="submit" class="py-2.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition shadow-lg shadow-indigo-600/20">Save Changes</button>
+            </div>
+        </form>
     </div>
+</div>
 
     <!-- Image Zoom Modal -->
     <div id="imageZoomModal" onclick="closeImageZoomModal()" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 cursor-zoom-out">

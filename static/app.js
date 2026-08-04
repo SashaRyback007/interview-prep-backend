@@ -323,49 +323,57 @@ function handleSaveProfile(event) {
     event.preventDefault();
     
     const newUsername = document.getElementById("editUsername").value.trim();
-    const fileInput = document.getElementById("editAvatarFile");
-    let newAvatarUrl = document.getElementById("editAvatarUrl").value.trim();
-    const defaultAvatar = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150";
+    
+    // Avatar inputs
+    const avatarFile = document.getElementById("editAvatarFile").files[0];
+    const avatarUrl = document.getElementById("editAvatarUrl").value.trim();
     const avatarEl = document.getElementById("userAvatar");
 
-    // Збереження імені
+    // Banner inputs
+    const bannerFile = document.getElementById("editBannerFile").files[0];
+    const bannerUrl = document.getElementById("editBannerUrl").value.trim();
+    const heroBanner = document.getElementById("heroBanner");
+
     if (newUsername) {
         localStorage.setItem("username", newUsername);
         document.getElementById("usernameDisplay").textContent = newUsername;
     }
 
-    // 1. Якщо обрано файл з комп'ютера
-    if (fileInput.files && fileInput.files[0]) {
-        const file = fileInput.files[0];
+    // Збереження аватарки
+    if (avatarFile) {
         const reader = new FileReader();
-
         reader.onload = function(e) {
-            const base64Image = e.target.result;
-            localStorage.setItem("user_avatar", base64Image);
-            if (avatarEl) avatarEl.src = base64Image;
-            fileInput.value = ""; // Очищаємо поле файлу
-            toggleEditProfileModal();
+            localStorage.setItem("user_avatar", e.target.result);
+            if (avatarEl) avatarEl.src = e.target.result;
         };
-
-        reader.readAsDataURL(file);
-        return; // Виходимо, оскільки файл обробляється асинхронно
+        reader.readAsDataURL(avatarFile);
+    } else if (avatarUrl) {
+        localStorage.setItem("user_avatar", avatarUrl);
+        if (avatarEl) avatarEl.src = avatarUrl;
     }
 
-    // 2. Якщо вказано URL-посилання
-    if (newAvatarUrl) {
-        if (newAvatarUrl.includes("pinterest.com/pin/")) {
-            alert("Ви вставили посилання на сторінку Pinterest! Натисніть правою кнопкою на саму картинку та виберіть 'Копіювати адресу зображення'.");
-            return;
-        }
-        localStorage.setItem("user_avatar", newAvatarUrl);
-        if (avatarEl) avatarEl.src = newAvatarUrl;
-    } else if (!localStorage.getItem("user_avatar")) {
-        localStorage.removeItem("user_avatar");
-        if (avatarEl) avatarEl.src = defaultAvatar;
+    // Збереження банера
+    if (bannerFile) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64Banner = e.target.result;
+            localStorage.setItem("user_banner", base64Banner);
+            if (heroBanner) heroBanner.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('${base64Banner}')`;
+        };
+        reader.readAsDataURL(bannerFile);
+    } else if (bannerUrl) {
+        localStorage.setItem("user_banner", bannerUrl);
+        if (heroBanner) heroBanner.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('${bannerUrl}')`;
     }
 
     toggleEditProfileModal();
 }
+
+// Додаємо виклики в DOMContentLoaded
+document.addEventListener("DOMContentLoaded", () => {
+    initTheme();
+    loadSavedBanner();
+});
 // Відкрити зображення у збільшеному модальному вікні
 // Зум зображення з перевіркою на валідність URL
 function zoomImage(src) {
@@ -546,3 +554,41 @@ document.addEventListener("DOMContentLoaded", () => {
         if (typeof loadRandomQuestion === "function") loadRandomQuestion();
     }
 });
+// ==================== THEME TOGGLE LOGIC ====================
+
+function initTheme() {
+    const savedTheme = localStorage.getItem("theme") || "dark";
+    applyTheme(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = localStorage.getItem("theme") || "dark";
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    localStorage.setItem("theme", newTheme);
+    applyTheme(newTheme);
+}
+
+function applyTheme(theme) {
+    const body = document.body;
+    const themeIcon = document.getElementById("themeIcon");
+
+    if (theme === "light") {
+        body.classList.remove("bg-[#0b0e14]", "text-slate-100");
+        body.classList.add("bg-slate-100", "text-slate-900");
+        if (themeIcon) themeIcon.textContent = "🌙";
+    } else {
+        body.classList.remove("bg-slate-100", "text-slate-900");
+        body.classList.add("bg-[#0b0e14]", "text-slate-100");
+        if (themeIcon) themeIcon.textContent = "☀️";
+    }
+}
+
+// ==================== BANNER & PROFILE LOGIC ====================
+
+function loadSavedBanner() {
+    const bannerUrl = localStorage.getItem("user_banner");
+    const heroBanner = document.getElementById("heroBanner");
+    if (heroBanner && bannerUrl) {
+        heroBanner.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('${bannerUrl}')`;
+    }
+}
