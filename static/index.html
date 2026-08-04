@@ -1,11 +1,26 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interview Prep</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg) !important;
+        }
+    </style>
 </head>
 <body class="bg-[#0b0e14] text-slate-100 min-h-screen flex flex-col font-sans antialiased">
 
@@ -19,20 +34,34 @@
                 <h1 class="text-lg font-bold tracking-wide text-white">Interview Prep</h1>
             </div>
             
-            <div id="userInfo" class="hidden flex items-center gap-4">
-                <span id="usernameDisplay" class="text-sm font-medium text-slate-300"></span>
-                <button onclick="logout()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 py-1.5 px-3 rounded-lg transition">
-                    Вийти
+            <!-- Header User Info Area -->
+            <div id="userInfo" class="hidden flex items-center gap-3">
+                <!-- Аватарка (Зум при кліку) -->
+                <img id="userAvatar" 
+                    src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" 
+                    alt="User Avatar" 
+                    onclick="zoomImage(this.src)" 
+                    class="w-9 h-9 rounded-full object-cover border border-indigo-500/40 shadow-sm cursor-pointer hover:scale-110 hover:border-indigo-400 transition" 
+                    title="Click to zoom image" />
+
+                <!-- Кнопка з ім'ям та олівцем (Відкриває Edit Profile) -->
+                <button type="button" onclick="toggleEditProfileModal()" class="flex items-center gap-1.5 p-1 rounded-lg hover:bg-slate-800/80 transition cursor-pointer border border-transparent hover:border-slate-700/60" title="Edit Profile">
+                    <span id="usernameDisplay" class="text-sm font-semibold text-slate-200"></span>
+                    <span class="text-xs text-slate-400">✏️</span>
+                </button>
+
+                <!-- Кнопка виходу -->
+                <button type="button" onclick="logout()" class="ml-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 py-1.5 px-3 rounded-lg transition">
+                    Log out
                 </button>
             </div>
-        </div>
     </header>
 
     <main class="max-w-6xl mx-auto w-full px-6 py-8 flex-grow flex flex-col justify-center">
 
         <!-- 1. AUTH SECTION -->
         <section id="authSection" class="max-w-md mx-auto w-full bg-[#121824] p-8 rounded-2xl border border-slate-800/80 shadow-2xl">
-            <h2 class="text-2xl font-bold mb-6 text-center text-white">Вхід в акаунт</h2>
+            <h2 class="text-2xl font-bold mb-6 text-center text-white">Sign In</h2>
             <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Username</label>
@@ -43,35 +72,39 @@
                     <input type="password" id="loginPassword" required value="mysecretpassword123" class="w-full p-3 bg-[#1a2232] border border-slate-700/60 rounded-xl focus:outline-none focus:border-indigo-500 text-white transition">
                 </div>
                 <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold text-white transition shadow-lg shadow-indigo-600/20">
-                    Увійти
+                    Log In
                 </button>
                 <p id="loginError" class="text-red-400 text-sm text-center hidden mt-2"></p>
             </form>
         </section>
 
         <!-- 2. DASHBOARD SECTION -->
-        <!-- 2. DASHBOARD SECTION -->
         <section id="dashboardSection" class="hidden space-y-6">
             
-            <!-- Hero Banner з текстом та фоном -->
-            <div class="relative overflow-hidden bg-gradient-to-r from-[#121824] via-[#1a2336] to-[#121824] p-8 md:p-10 rounded-2xl border border-slate-800/80 shadow-2xl text-center">
-                <!-- Декоративні розмиті плями для ефекту свічення -->
-                <div class="absolute -left-10 -top-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl pointer-events-none"></div>
-                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-purple-600/10 rounded-full blur-2xl pointer-events-none"></div>
+            <!-- Hero Banner (Full Video Background with Centered Overlay Text) -->
+            <div class="relative overflow-hidden w-full min-h-[220px] md:min-h-[260px] rounded-2xl border border-indigo-500/30 shadow-2xl flex items-center justify-center text-center p-8 md:p-10">
+                
+                <!-- Background Video (Full Block) -->
+                <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover">
+                    <source src="your-video.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
 
-                <div class="relative z-10 max-w-2xl mx-auto space-y-2">
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+                <!-- Dark Overlay for High Text Readability -->
+                <div class="absolute inset-0 bg-slate-950/65 backdrop-blur-[2px]"></div>
+
+                <!-- Text Content (On top of Video) -->
+                <div class="relative z-10 max-w-xl space-y-3">
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight drop-shadow-md">
                         Welcome to IT Interview Prep Hub
                     </h2>
-                    <p class="text-sm md:text-base text-slate-400 font-medium">
-                        Master your technical interviews with confidence
+                    <p class="text-sm md:text-base text-slate-200 font-medium leading-relaxed drop-shadow">
+                        Master your technical interviews with confidence, practice flashcards, and track your progress.
                     </p>
                 </div>
             </div>
-
             <!-- Stats Widgets Grid -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <!-- Total -->
                 <div class="bg-[#121824] p-5 rounded-2xl border border-slate-800/80 shadow-sm flex flex-col justify-between">
                     <div class="flex items-center gap-2 text-slate-400 text-xs font-medium">
                         <span>📖</span> Total Questions
@@ -79,7 +112,6 @@
                     <p id="statTotal" class="text-3xl font-extrabold text-white mt-3">0</p>
                 </div>
 
-                <!-- New -->
                 <div class="bg-[#121824] p-5 rounded-2xl border border-slate-800/80 shadow-sm flex flex-col justify-between">
                     <div class="flex items-center gap-2 text-slate-400 text-xs font-medium">
                         <span class="text-indigo-400">✨</span> New
@@ -87,7 +119,6 @@
                     <p id="statNew" class="text-3xl font-extrabold text-white mt-3">0</p>
                 </div>
 
-                <!-- Learning -->
                 <div class="bg-[#121824] p-5 rounded-2xl border border-slate-800/80 shadow-sm flex flex-col justify-between">
                     <div class="flex items-center gap-2 text-slate-400 text-xs font-medium">
                         <span class="text-amber-400">⚡</span> Learning
@@ -95,7 +126,6 @@
                     <p id="statLearning" class="text-3xl font-extrabold text-white mt-3">0</p>
                 </div>
 
-                <!-- Mastered -->
                 <div class="bg-[#121824] p-5 rounded-2xl border border-slate-800/80 shadow-sm flex flex-col justify-between">
                     <div class="flex items-center gap-2 text-slate-400 text-xs font-medium">
                         <span class="text-emerald-400">✅</span> Mastered
@@ -104,55 +134,153 @@
                 </div>
             </div>
 
-            <!-- Main Question Card -->
-            <div class="bg-[#121824] p-8 md:p-10 rounded-2xl border border-slate-800/80 shadow-xl space-y-6">
-                
-                <!-- Tags -->
-                <div class="flex items-center gap-2">
-                    <span id="qCategory" class="bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-3.5 py-1 rounded-full text-xs font-semibold">
-                        System Design
-                    </span>
-                    <span id="qDifficulty" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3.5 py-1 rounded-full text-xs font-semibold">
-                        Medium
-                    </span>
+            <!-- Add Question Button -->
+            <div class="flex justify-end">
+                <button onclick="toggleCreateModal()" class="py-2.5 px-5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-semibold text-xs transition flex items-center gap-2 cursor-pointer">
+                    <span>➕</span> Add New Question
+                </button>
+            </div>
+
+            <!-- Create Question Modal -->
+            <div id="createModal" class="hidden bg-[#121824] p-6 rounded-2xl border border-slate-800/80 shadow-2xl space-y-4">
+                <h3 class="text-lg font-bold text-white">Create New Flashcard</h3>
+                <form onsubmit="handleCreateQuestion(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Question / Term</label>
+                        <input type="text" id="newTitle" required placeholder="e.g., What is GIL in Python?" class="w-full p-3 bg-[#1a2232] border border-slate-700/60 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Answer / Explanation</label>
+                        <textarea id="newAnswer" required rows="3" placeholder="Enter detailed answer..." class="w-full p-3 bg-[#1a2232] border border-slate-700/60 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Category ID</label>
+                            <input type="number" id="newCategoryId" value="1" required class="w-full p-3 bg-[#1a2232] border border-slate-700/60 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Difficulty</label>
+                            <select id="newDifficulty" class="w-full p-3 bg-[#1a2232] border border-slate-700/60 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                                <option value="Easy">Easy</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" onclick="toggleCreateModal()" class="py-2 px-4 rounded-xl text-slate-400 text-xs hover:text-white transition">Cancel</button>
+                        <button type="submit" class="py-2.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition">Save Card</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Quizlet Flashcard -->
+            <div class="space-y-4">
+                <div class="flex justify-between items-center text-xs font-semibold text-slate-400 px-1">
+                    <span id="cardCounter">Card 1</span>
+                    <span class="text-indigo-400">Click card to flip 🔄</span>
                 </div>
 
-                <!-- Question Title -->
-                <h3 id="qTitle" class="text-2xl md:text-3xl font-bold text-white leading-tight min-h-[60px]">
-                    Завантаження питання...
-                </h3>
+                <div class="perspective-1000 w-full min-h-[300px] cursor-pointer" onclick="flipCard()">
+                    <div id="flashcard" class="relative w-full h-full min-h-[300px] duration-500 transform-style-3d transition-transform">
+                        
+                        <!-- FRONT -->
+                        <div class="absolute inset-0 w-full h-full bg-[#121824] p-8 md:p-10 rounded-2xl border border-slate-800/80 shadow-xl backface-hidden flex flex-col justify-between">
+                            <div class="flex items-center gap-2">
+                                <span id="qCategory" class="bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-3.5 py-1 rounded-full text-xs font-semibold">
+                                    Category #1
+                                </span>
+                                <span id="qDifficulty" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3.5 py-1 rounded-full text-xs font-semibold">
+                                    Medium
+                                </span>
+                            </div>
+                            
+                            <h3 id="qTitle" class="text-2xl md:text-3xl font-bold text-white text-center my-auto leading-tight">
+                                Loading question...
+                            </h3>
 
-                <!-- Toggle Answer Accordion -->
-                <div class="pt-2">
-                    <button onclick="toggleAnswer()" class="flex items-center gap-2 text-slate-400 hover:text-slate-200 text-sm font-medium transition focus:outline-none">
-                        <span id="answerArrow" class="text-xs transition-transform">⌵</span> Answer
-                    </button>
+                            <p class="text-xs text-slate-500 text-center uppercase tracking-wider font-semibold">QUESTION</p>
+                        </div>
 
-                    <div id="answerBox" class="hidden mt-3 p-5 bg-[#182030] rounded-xl border border-slate-800 text-slate-300 text-sm md:text-base leading-relaxed whitespace-pre-line">
-                        <p id="qAnswer"></p>
+                        <!-- BACK -->
+                        <div class="absolute inset-0 w-full h-full bg-[#182030] p-8 md:p-10 rounded-2xl border border-indigo-500/40 shadow-xl backface-hidden rotate-y-180 flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-indigo-400 font-bold uppercase tracking-wider">Correct Answer</span>
+                                <span class="text-xs text-slate-400">💡 Explanation</span>
+                            </div>
+
+                            <p id="qAnswer" class="text-base md:text-lg text-slate-200 leading-relaxed overflow-y-auto my-auto max-h-[170px] pr-2">
+                                Waiting for answer...
+                            </p>
+
+                            <p class="text-xs text-slate-500 text-center uppercase tracking-wider font-semibold">CLICK TO FLIP BACK</p>
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- Action Buttons Row -->
-                <div class="flex flex-col sm:flex-row items-center gap-3 pt-6 border-t border-slate-800/60">
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                    <button onclick="loadPreviousQuestion()" class="w-full sm:w-auto py-3 px-5 rounded-xl border border-indigo-500/30 bg-indigo-950/40 hover:bg-indigo-900/50 text-indigo-300 font-semibold text-sm transition flex items-center justify-center gap-2">
+                        ← Back
+                    </button>
+
                     <button onclick="updateStatus('Learning')" class="w-full sm:w-auto flex-1 py-3 px-6 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-semibold text-sm transition">
-                        Still Learning
+                         Still Learning
                     </button>
 
                     <button onclick="updateStatus('Mastered')" class="w-full sm:w-auto flex-1 py-3 px-6 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm transition shadow-lg shadow-emerald-500/20">
-                        Mastered
+                         Mastered
                     </button>
 
                     <button onclick="loadRandomQuestion()" class="w-full sm:w-auto py-3 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">
-                        Next Question <span class="text-base">→</span>
+                        Next ➔
                     </button>
                 </div>
 
             </div>
         </section>
+        </main>
+    <!-- Edit Profile Modal -->
+    <!-- Edit Profile Modal (ОБОВ'ЯЗКОВО з id="editProfileModal") -->
+    <div id="editProfileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div class="bg-[#121824] w-full max-w-md p-6 rounded-2xl border border-slate-800/80 shadow-2xl space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <span>👤</span> Edit Profile
+                </h3>
+                <button type="button" onclick="toggleEditProfileModal()" class="text-slate-400 hover:text-white text-lg font-bold transition">✕</button>
+            </div>
+            
+            <form onsubmit="handleSaveProfile(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Username</label>
+                    <input type="text" id="editUsername" required class="w-full p-3 bg-[#1a2232] border border-slate-700/60 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Avatar Image URL</label>
+                    <input type="url" id="editAvatarUrl" placeholder="https://..." class="w-full p-3 bg-[#1a2232] border border-slate-700/60 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500 transition">
+                </div>
 
-    </main>
+                <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="toggleEditProfileModal()" class="py-2.5 px-4 rounded-xl text-slate-400 text-xs hover:text-white transition">Cancel</button>
+                    <button type="submit" class="py-2.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition shadow-lg shadow-indigo-600/20">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Image Zoom Modal (В самому кінці файлу перед </body>) -->
+    <div id="imageZoomModal" onclick="closeImageZoomModal()" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 cursor-zoom-out">
+        <div class="relative max-w-4xl max-h-[90vh] p-2 flex flex-col items-center">
+            <button type="button" onclick="closeImageZoomModal()" class="absolute -top-10 right-0 text-white text-2xl font-bold hover:text-indigo-400 transition cursor-pointer">
+                ✕
+            </button>
+            <img id="zoomedImage" src="" alt="Zoomed view" class="max-w-full max-h-[85vh] object-contain rounded-2xl border border-slate-700/80 shadow-2xl" onclick="event.stopPropagation()" />
+        </div>
+    </div>
+    
 
-    <script src="app.js"></script>
+    <script src="app.js?v=2.0"></script>
 </body>
 </html>
