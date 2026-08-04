@@ -5,6 +5,8 @@ let questionHistory = [];
 let historyIndex = -1;
 let currentQuestionId = null;
 let currentQuestionData = null;
+let timerInterval = null;
+let secondsPassed = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem("access_token");
@@ -434,7 +436,113 @@ async function handleDeleteQuestion() {
         alert("Сталася помилка при зверненні до сервера.");
     }
 }
+
+function updateStreak() {
+    const today = new Date().toISOString().split('T')[0];
+    const lastVisit = localStorage.getItem("last_active_date");
+    let streak = parseInt(localStorage.getItem("daily_streak") || "1");
+
+    if (!lastVisit) {
+        streak = 1;
+    } else if (lastVisit !== today) {
+        const lastDate = new Date(lastVisit);
+        const currentDate = new Date(today);
+        const diffTime = Math.abs(currentDate - lastDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+            streak += 1; // Продовження стріку
+        } else if (diffDays > 1) {
+            streak = 1;  // Пропущено день, перезапуск
+        }
+    }
+
+    localStorage.setItem("last_active_date", today);
+    localStorage.setItem("daily_streak", streak.toString());
+
+    const streakEl = document.getElementById("statStreak");
+    if (streakEl) {
+        streakEl.innerHTML = `${streak} <span class="text-xs text-slate-400 font-normal">days</span>`;
+    }
+}
+
+// 2. Таймер для картки
+function startTimer() {
+    clearInterval(timerInterval);
+    secondsPassed = 0;
+    updateTimerDisplay();
+
+    timerInterval = setInterval(() => {
+        secondsPassed++;
+        updateTimerDisplay();
+    }, 1000);
+}
+
+function resetTimer() {
+    startTimer();
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(secondsPassed / 60).toString().padStart(2, '0');
+    const seconds = (secondsPassed % 60).toString().padStart(2, '0');
+    const timerEl = document.getElementById("timerDisplay");
+    if (timerEl) {
+        timerEl.textContent = `${minutes}:${seconds}`;
+    }
+}
+
+// 3. Оновлення Прогрес-бару та статистики
+async function loadStats() {
+    try {
+        const token = localStorage.getItem("access_token");
+        if (!token) return;
+
+        const response = await fetch("/stats", {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (response.status === 401) {
+            // Токен застарів — очищаємо та просимо увійти знову
+            localStorage.removeItem("access_token");
+            console.warn("Session expired. Please log in again.");
+            // Перенаправлення / відкриття модалки логіну якщо є
+            if (typeof toggleLoginModal === "function") toggleLoginModal();
+            return;
+        }
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        document.getElementById("statTotal").textContent = data.total_questions;
+        document.getElementById("statNew").textContent = data.new_count;
+        document.getElementById("statLearning").textContent = data.learning_count;
+        document.getElementById("statMastered").textContent = data.mastered_count;
+
+        const percent = data.progress_percentage || 0;
+        const barFill = document.getElementById("progressBarFill");
+        const percentText = document.getElementById("progressPercentageText");
+
+        if (barFill) barFill.style.width = `${percent}%`;
+        if (percentText) percentText.textContent = `${percent}%`;
+
+    } catch (err) {
+        console.error("Error loading stats:", err);
+    }
+}
+// Усередині функції renderQuestion(data):
+startTimer();
 function logout() {
     localStorage.clear();
     location.reload();
 }
+// Викликаємо оновлення статистики, категорій та стріку після завантаження сторінки
+document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+        if (typeof updateStreak === "function") updateStreak();
+        if (typeof loadStats === "function") loadStats();
+        if (typeof loadCategoriesDropdown === "function") loadCategoriesDropdown();
+        if (typeof loadRandomQuestion === "function") loadRandomQuestion();
+    }
+});

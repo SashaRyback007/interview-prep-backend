@@ -100,7 +100,7 @@
             </div>
 
             <!-- Stats Widgets Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div class="bg-[#121824] p-5 rounded-2xl border border-slate-800/80 shadow-sm flex flex-col justify-between">
                     <div class="flex items-center gap-2 text-slate-400 text-xs font-medium">
                         <span>📖</span> Total Questions
@@ -128,8 +128,50 @@
                     </div>
                     <p id="statMastered" class="text-3xl font-extrabold text-white mt-3">0</p>
                 </div>
+
+                <!-- 🔥 Daily Streak Widget -->
+                <div class="bg-[#121824] p-5 rounded-2xl border border-slate-800/80 shadow-sm flex flex-col justify-between col-span-2 md:col-span-1">
+                    <div class="flex items-center gap-2 text-slate-400 text-xs font-medium">
+                        <span class="text-orange-500">🔥</span> Day Streak
+                    </div>
+                    <p id="statStreak" class="text-3xl font-extrabold text-white mt-3">0 <span class="text-xs text-slate-400 font-normal">days</span></p>
+                </div>
             </div>
 
+            <!-- 📊 Progress Bar Container -->
+            <div class="bg-[#121824] p-4 rounded-2xl border border-slate-800/80 shadow-sm space-y-2">
+                <div class="flex justify-between items-center text-xs font-semibold">
+                    <span class="text-slate-400">Overall Mastery Progress</span>
+                    <span id="progressPercentageText" class="text-emerald-400">0%</span>
+                </div>
+                <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+                    <div id="progressBarFill" class="h-full bg-emerald-500 transition-all duration-500 w-0"></div>
+                </div>
+            </div>
+
+            <!-- 🎯 ФІЛЬТРИ ТА ПОШУК -->
+            <div class="bg-[#121824] p-4 rounded-2xl border border-slate-800/80 flex flex-wrap gap-3 items-center justify-between">
+                <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                    <!-- Фільтр Категорій -->
+                    <select id="filterCategory" onchange="loadRandomQuestion()" class="bg-[#1a2232] border border-slate-700/60 text-xs font-semibold rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                        <option value="0">All Categories</option>
+                    </select>
+
+                    <!-- Фільтр Складності -->
+                    <select id="filterDifficulty" onchange="loadRandomQuestion()" class="bg-[#1a2232] border border-slate-700/60 text-xs font-semibold rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                        <option value="All">All Difficulties</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+
+                <!-- ⭐️ Фільтр "Тільки обрані" -->
+                <button id="bookmarkFilterBtn" onclick="toggleFavoriteFilter()" class="py-2 px-3.5 rounded-xl border border-slate-700/60 bg-[#1a2232] hover:bg-slate-800 text-xs font-semibold text-slate-300 transition flex items-center gap-1.5 cursor-pointer">
+                    <span>⭐</span> Only Bookmarks
+                </button>
+            </div>
+            
             <!-- Add Question Button -->
             <div class="flex justify-end">
                 <button onclick="toggleCreateModal()" class="py-2.5 px-5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-semibold text-xs transition flex items-center gap-2 cursor-pointer">
@@ -171,11 +213,17 @@
             </div>
 
             <!-- Quizlet Flashcard Area -->
-            <div class="space-y-4">
-                <div class="flex justify-between items-center text-xs font-semibold text-slate-400 px-1">
-                    <span id="cardCounter">Card 1</span>
-                    <span class="text-indigo-400">Click card to flip </span>
-                </div>
+            <div class="flex justify-between items-center text-xs font-semibold text-slate-400 px-1">
+            <div class="flex items-center gap-3">
+                <span id="cardCounter">Card</span>
+                <!-- ⏱ Timer Display -->
+                <span class="bg-[#121824] px-2.5 py-1 rounded-lg border border-slate-800 text-indigo-300 font-mono flex items-center gap-1">
+                    ⏱ <span id="timerDisplay">00:00</span>
+                </span>
+                <button type="button" onclick="resetTimer()" class="text-slate-500 hover:text-slate-300 transition" title="Reset Timer">↻</button>
+            </div>
+            <span class="text-indigo-400">Click card to flip </span>
+        </div>
 
                 <div class="perspective-1000 w-full min-h-[300px] cursor-pointer" onclick="flipCard()">
                     <div id="flashcard" class="relative w-full h-full min-h-[300px] duration-500 transform-style-3d transition-transform">
