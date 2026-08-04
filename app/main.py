@@ -8,6 +8,7 @@ from app import models, schemas
 from app.auth import get_current_user
 import random
 from fastapi.staticfiles import StaticFiles
+from fastapi import HTTPException, status
 
 # Автоматично створюємо таблиці в БД
 Base.metadata.create_all(bind=engine)
@@ -200,14 +201,17 @@ def get_user_stats(
 @app.get("/questions/random", response_model=schemas.QuestionResponse)
 def get_random_question(
     category_id: int | None = None,
-    difficulty: models.DifficultyEnum | None = None,
+    difficulty: str | None = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(models.Question)
     
-    if category_id:
+    # Фільтруємо категорію, тільки якщо це дійсний ID (> 0)
+    if category_id and category_id > 0:
         query = query.filter(models.Question.category_id == category_id)
-    if difficulty:
+        
+    # Фільтруємо складність, тільки якщо це не "All" і значення заповнене
+    if difficulty and difficulty != "All":
         query = query.filter(models.Question.difficulty == difficulty)
         
     questions = query.all()
@@ -219,5 +223,24 @@ def get_random_question(
         )
         
     return random.choice(questions)
+
+
+@app.delete("/api/questions/{question_id}")
+def delete_question(question_id: int, db: Session = Depends(get_db)):
+    # Звертаємося через models.Question
+    question = db.query(models.Question).filter(models.Question.id == question_id).first()
+    if not question:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Question not found"
+        )
+    
+    # Видаляємо зв'язаний прогрес користувачів за цим питанням (якщо є)
+    db.query(models.UserProgress).filter(models.UserProgress.question_id == question_id).delete()
+
+    # Видаляємо сам об'єкт питання
+    db.delete(question)
+    db.commit()
+    return {"message": "Question deleted successfully"}
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")

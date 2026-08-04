@@ -12,9 +12,9 @@ class DifficultyEnum(str, enum.Enum):
 
 
 class StatusEnum(str, enum.Enum):
-    NEW = "New"
-    LEARNING = "Learning"
-    MASTERED = "Mastered"
+    NEW = "NEW"
+    LEARNING = "LEARNING"
+    MASTERED = "MASTERED"
 
 
 class User(Base):

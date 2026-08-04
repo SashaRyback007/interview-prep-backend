@@ -3,6 +3,8 @@ let currentQuestion = null;
 let isFlipped = false;
 let questionHistory = [];
 let historyIndex = -1;
+let currentQuestionId = null;
+let currentQuestionData = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem("access_token");
@@ -94,55 +96,97 @@ function flipCard() {
         card.classList.remove("rotate-y-180");
     }
 }
+// 2. Відображення даних питання в картці
+function renderQuestion(data) {
+    if (!data) return;
 
-async function loadRandomQuestion() {
-    // Якщо ми дивилися історію і натиснули "Next", повертаємося до актуального завантаження
-    if (historyIndex < questionHistory.length - 1) {
-        historyIndex++;
-        displayQuestion(questionHistory[historyIndex]);
-        return;
+    currentQuestionId = data.id;
+    currentQuestionData = data;
+
+    // Заповнюємо дані
+    const titleEl = document.getElementById("qTitle");
+    const answerEl = document.getElementById("qAnswer");
+    const categoryEl = document.getElementById("qCategory");
+    const difficultyEl = document.getElementById("qDifficulty");
+
+    if (titleEl) titleEl.textContent = data.title;
+    
+    // Форматування коду у відповіді (якщо є)
+    let formattedAnswer = data.answer_text || data.answer || "";
+    formattedAnswer = formattedAnswer.replace(/```(python|sql|javascript|js)?\n([\s\S]*?)```/g, function(match, lang, code) {
+        const language = lang || 'python';
+        return `<pre><code class="language-${language}">${code.trim()}</code></pre>`;
+    });
+
+    if (answerEl) answerEl.innerHTML = formattedAnswer;
+
+    // Підсвічування коду через Prism.js
+    if (window.Prism) {
+        Prism.highlightAll();
     }
 
-    const card = document.getElementById("flashcard");
-    if (isFlipped && card) {
-        card.classList.remove("rotate-y-180");
-        isFlipped = false;
-        await new Promise(r => setTimeout(r, 200));
-    }
+    if (categoryEl) categoryEl.textContent = `Category #${data.category_id}`;
+    if (difficultyEl) difficultyEl.textContent = data.difficulty;
 
-    const token = localStorage.getItem("access_token");
+    // Оновлюємо лічильник та іконку зірочки
+    if (typeof updateStarUI === "function") updateStarUI();
 
-    try {
-        const res = await fetch(`${API_URL}/questions/random`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        if (!res.ok) {
-            document.getElementById("qTitle").textContent = "No questions available in database";
-            return;
-        }
-
-        const question = await res.json();
-        
-        // Зберігаємо питання в історію
-        questionHistory.push(question);
-        historyIndex = questionHistory.length - 1;
-        
-        displayQuestion(question);
-
-    } catch (err) {
-        console.error("Error loading question:", err);
+    // Скидаємо переворот картки на передню сторону
+    const flashcard = document.getElementById("flashcard");
+    if (flashcard) {
+        flashcard.classList.remove("rotate-y-180");
     }
 }
 
-async function loadPreviousQuestion() {
-    if (historyIndex <= 0) {
-        return; // Якщо це перше питання, далі назад не йдемо
-    }
+// 3. Завантаження наступного/випадкового питання (кнопка Next ➔)
+async function loadRandomQuestion() {
+    try {
+        const categoryId = document.getElementById("filterCategory")?.value || 0;
+        const difficulty = document.getElementById("filterDifficulty")?.value || "All";
+        
+        // Формуємо параметри запиту
+        let params = new URLSearchParams();
+        if (parseInt(categoryId) > 0) {
+            params.append("category_id", categoryId);
+        }
+        if (difficulty && difficulty !== "All") {
+            params.append("difficulty", difficulty);
+        }
 
-    historyIndex--;
-    const question = questionHistory[historyIndex];
-    displayQuestion(question);
+        const queryString = params.toString() ? `?${params.toString()}` : "";
+        const response = await fetch(`/questions/random${queryString}`);
+
+        if (!response.ok) {
+            document.getElementById("qTitle").textContent = "No questions found for selected filters!";
+            document.getElementById("qAnswer").textContent = "Try changing category or difficulty filters.";
+            return;
+        }
+
+        const data = await response.json();
+
+        // Додаємо в історію
+        if (historyIndex < questionHistory.length - 1) {
+            questionHistory = questionHistory.slice(0, historyIndex + 1);
+        }
+        questionHistory.push(data);
+        historyIndex = questionHistory.length - 1;
+
+        renderQuestion(data);
+
+    } catch (error) {
+        console.error("Error loading question:", error);
+    }
+}
+
+// 4. Функція для кнопки ← Back
+function loadPreviousQuestion() {
+    if (historyIndex > 0) {
+        historyIndex--;
+        const previousQuestion = questionHistory[historyIndex];
+        renderQuestion(previousQuestion);
+    } else {
+        alert("Це найперше питання у вашій сесії!");
+    }
 }
 
 // Відображення питання на картці
@@ -209,31 +253,53 @@ async function handleCreateQuestion(event) {
     }
 }
 
-async function updateStatus(status) {
-    if (!currentQuestion) return;
-    const token = localStorage.getItem("access_token");
+// Оновлення статусу вивчення питання (Learning / Mastered)
+async function updateStatus(newStatus) {
+    if (!currentQuestionId) {
+        alert("Не вдалося визначити ID питання!");
+        return;
+    }
 
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+        alert("Будь ласка, увійдіть в акаунт!");
+        return;
+    }
+
+    // Пробуємо відправити статус
     try {
-        const res = await fetch(`${API_URL}/progress`, {
+        const response = await fetch("/progress", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                question_id: currentQuestion.id,
-                status: status
+                question_id: currentQuestionId,
+                status: newStatus.toUpperCase() // Наприклад: "LEARNING" або "MASTERED"
             })
         });
 
-        if (res.ok) {
-            loadStats();
+        if (response.ok) {
+            if (typeof loadStats === "function") loadStats();
             loadRandomQuestion();
+        } else {
+            const errorData = await response.json();
+            // Зрозумілий розбір помилки від FastAPI
+            let errorMsg = "Помилка оновлення статусу";
+            if (typeof errorData.detail === "string") {
+                errorMsg = errorData.detail;
+            } else if (Array.isArray(errorData.detail)) {
+                errorMsg = errorData.detail.map(e => `${e.loc.join('.')}: ${e.msg}`).join("\n");
+            }
+            alert(`Помилка: ${errorMsg}`);
         }
     } catch (err) {
-        console.error("Error saving progress:", err);
+        console.error("Error updating question status:", err);
+        alert("Сталася помилка при з'єднанні з сервером.");
     }
 }
+
 // Перемикач відображення модального вікна редагування профілю
 function toggleEditProfileModal() {
     const modal = document.getElementById("editProfileModal");
@@ -255,26 +321,46 @@ function handleSaveProfile(event) {
     event.preventDefault();
     
     const newUsername = document.getElementById("editUsername").value.trim();
-    const newAvatarUrl = document.getElementById("editAvatarUrl").value.trim();
+    const fileInput = document.getElementById("editAvatarFile");
+    let newAvatarUrl = document.getElementById("editAvatarUrl").value.trim();
     const defaultAvatar = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150";
+    const avatarEl = document.getElementById("userAvatar");
 
+    // Збереження імені
     if (newUsername) {
         localStorage.setItem("username", newUsername);
         document.getElementById("usernameDisplay").textContent = newUsername;
     }
 
-    const avatarEl = document.getElementById("userAvatar");
-    if (newAvatarUrl) {
-        localStorage.setItem("user_avatar", newAvatarUrl);
-        avatarEl.src = newAvatarUrl;
-    } else {
-        localStorage.removeItem("user_avatar");
-        avatarEl.src = defaultAvatar;
+    // 1. Якщо обрано файл з комп'ютера
+    if (fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const base64Image = e.target.result;
+            localStorage.setItem("user_avatar", base64Image);
+            if (avatarEl) avatarEl.src = base64Image;
+            fileInput.value = ""; // Очищаємо поле файлу
+            toggleEditProfileModal();
+        };
+
+        reader.readAsDataURL(file);
+        return; // Виходимо, оскільки файл обробляється асинхронно
     }
 
-    avatarEl.onerror = function() {
-        this.src = defaultAvatar;
-    };
+    // 2. Якщо вказано URL-посилання
+    if (newAvatarUrl) {
+        if (newAvatarUrl.includes("pinterest.com/pin/")) {
+            alert("Ви вставили посилання на сторінку Pinterest! Натисніть правою кнопкою на саму картинку та виберіть 'Копіювати адресу зображення'.");
+            return;
+        }
+        localStorage.setItem("user_avatar", newAvatarUrl);
+        if (avatarEl) avatarEl.src = newAvatarUrl;
+    } else if (!localStorage.getItem("user_avatar")) {
+        localStorage.removeItem("user_avatar");
+        if (avatarEl) avatarEl.src = defaultAvatar;
+    }
 
     toggleEditProfileModal();
 }
@@ -316,6 +402,38 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
+async function handleDeleteQuestion() {
+    if (!currentQuestionId) {
+        alert("Не вдалося визначити ID питання!");
+        return;
+    }
+
+    const confirmDelete = confirm("Ви дійсно хочете видалити це питання?");
+    if (!confirmDelete) return;
+
+    try {
+        const token = localStorage.getItem("access_token");
+        const response = await fetch(`/api/questions/${currentQuestionId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (response.ok) {
+            alert("Питання успішно видалено!");
+            if (typeof loadStats === "function") loadStats();
+            if (typeof loadRandomQuestion === "function") loadRandomQuestion();
+        } else {
+            const error = await response.json();
+            alert(`Помилка видалення: ${error.detail || "Невідома помилка"}`);
+        }
+    } catch (err) {
+        console.error("Помилка при видаленні:", err);
+        alert("Сталася помилка при зверненні до сервера.");
+    }
+}
 function logout() {
     localStorage.clear();
     location.reload();
